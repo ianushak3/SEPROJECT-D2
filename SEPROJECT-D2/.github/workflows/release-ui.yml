@@ -1,0 +1,37 @@
+# This is a basic workflow to help you get started with Actions
+name: Release UI
+
+# Controls when the workflow will run
+on:
+  release:
+    types:
+      - created
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    - run: flutter --version
+    - run: flutter pub get
+    - run: flutter test
+    - run: flutter build web
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with: 
+        aws-access-key-id: AKIA4VYKTDFM4WOHYFMD
+        aws-secret-access-key: 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 
+        aws-region: us-east-1
+        
+    - name: Sync to S3
+      run: aws s3 sync . s3://zoyacsi5112 --delete --cache-control maxage=0 --acl public-read
+      
+      working-directory: ./build/web
+    
